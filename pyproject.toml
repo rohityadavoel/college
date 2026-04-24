@@ -1,0 +1,28 @@
+[project]
+name = "DermaEnsemble AI: Multi-Model Dermatology Disease Detection System"
+version = "0.0.1"
+description = "Developed DermaEnsemble AI, a multi-model dermatology diagnosis system that validates image quality, detects skin regions using MobileNetV3, and predicts diseases using an ensemble of EfficientNetB4, MobileNetV3, and EfficientNetV2-M. The system applies majority voting for reliable classification and retrieves disease details via a MySQL database."
+authors = [
+  { name = "Rohit Kumar Yadav" },
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License"
+]
+requires-python = "~=3.12.0"
+
+
+[tool.ruff]
+line-length = 99
+src = ["DermaEnsemble AI: Multi-Model Dermatology Disease Detection System"]
+include = ["pyproject.toml", "DermaEnsemble AI: Multi-Model Dermatology Disease Detection System/**/*.py"]
+
+[tool.ruff.lint]
+extend-select = ["I"]  # Add import sorting
+
+[tool.ruff.lint.isort]
+known-first-party = ["DermaEnsemble AI: Multi-Model Dermatology Disease Detection System"]
+force-sort-within-sections = true
+
