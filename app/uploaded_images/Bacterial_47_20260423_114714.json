@@ -1,0 +1,26 @@
+{
+  "timestamp": "20260423_114714",
+  "predicted_class": "Bacterial",
+  "model_confidence": 0.47762808203697205,
+  "binary_confidence": 0.9977700710296631,
+  "pipeline": [
+    "Image uploaded",
+    "Validating image (parallel)",
+    "Quality checks passed (var=163.8)",
+    "Binary model: running",
+    "Binary model → skin (0.998)",
+    "Stage-2 EfficientNetV2-M: running",
+    "Final → Bacterial (0.478)",
+    "Disease info loaded from cache"
+  ],
+  "disease_info": {
+    "class_name": "Bacterial",
+    "description": "Bacterial skin infections occur when Staphylococcus or Streptococcus species invade the skin barrier. They often present with redness, warmth, swelling, pus formation, or painful lesions.",
+    "common_symptoms": "Redness, swelling, warmth, pus, tenderness, fever (in severe cases)",
+    "severity_level": "Moderate to Severe",
+    "recommended_action": "Seek medical care; antibiotics may be required. Clean wound surfaces and avoid scratching.",
+    "is_contagious": 1,
+    "related_conditions": "Fungal infection, cellulitis, abscess",
+    "image_indicators": "Pus-filled lesions, yellow crusts, spreading redness, inflamed patches"
+  }
+}

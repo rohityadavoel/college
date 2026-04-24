@@ -1,0 +1,1596 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DermaAI — Skin Disease Detection</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    /* ═══════════════════════════════════════
+       TOKENS
+    ═══════════════════════════════════════ */
+    :root {
+      /* Dark (40%) */
+      --dark-900: #080D1A;
+      --dark-800: #0D1526;
+      --dark-700: #111E33;
+      --dark-600: #172440;
+      --dark-500: #1E2E50;
+      --dark-400: #2A3F6A;
+      --dark-border: rgba(255, 255, 255, 0.07);
+
+      /* Light (60%) */
+      --light-bg: #F4F7FE;
+      --light-100: #EEF2FB;
+      --light-200: #E3E9F7;
+      --light-300: #CDD7F0;
+      --light-card: #FFFFFF;
+
+      /* Accent */
+      --teal: #00D4AA;
+      --teal-dim: rgba(0, 212, 170, 0.12);
+      --teal-glow: rgba(0, 212, 170, 0.25);
+      --amber: #FFB547;
+      --rose: #FF5B79;
+      --blue-acc: #4E9FFF;
+
+      /* Text */
+      --txt-dark: #E8EEFF;
+      --txt-muted: #8899BB;
+      --txt-body: #1C2B4A;
+      --txt-sub: #5A6E96;
+
+      /* Misc */
+      --radius: 14px;
+      --radius-sm: 8px;
+      --shadow-card: 0 4px 24px rgba(12, 22, 50, 0.09);
+      --shadow-dark: 0 8px 32px rgba(0, 0, 0, 0.35);
+      --font-head: 'Sora', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--light-bg);
+      color: var(--txt-body);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ═══════════════════════════════════════
+       SCROLLBAR
+    ═══════════════════════════════════════ */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--light-300);
+      border-radius: 99px;
+    }
+
+    .dark-scroll::-webkit-scrollbar-thumb {
+      background: var(--dark-400);
+    }
+
+    /* ═══════════════════════════════════════
+       LAYOUT: SIDEBAR (dark 40%) + MAIN (light 60%)
+    ═══════════════════════════════════════ */
+    .sidebar {
+      width: 380px;
+      min-width: 340px;
+      background: var(--dark-800);
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--dark-border);
+      overflow: hidden;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    /* Subtle grid pattern on sidebar */
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--dark-border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--dark-border) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+
+    .sidebar-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 24px 20px;
+      overflow-y: auto;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--light-bg);
+    }
+
+    /* ═══════════════════════════════════════
+       SIDEBAR: HEADER
+    ═══════════════════════════════════════ */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--teal), #007AFF);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 20px var(--teal-glow);
+      flex-shrink: 0;
+    }
+
+    .brand-name {
+      font-family: var(--font-head);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--txt-dark);
+      letter-spacing: -0.01em;
+    }
+
+    .brand-tag {
+      font-size: 0.68rem;
+      font-weight: 500;
+      color: var(--teal);
+      background: var(--teal-dim);
+      padding: 2px 7px;
+      border-radius: 20px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* ═══════════════════════════════════════
+       SIDEBAR: UPLOAD ZONE
+    ═══════════════════════════════════════ */
+    .upload-label {
+      display: block;
+      cursor: pointer;
+    }
+
+    .drop-zone {
+      border: 1.5px dashed var(--dark-400);
+      border-radius: var(--radius);
+      padding: 28px 16px;
+      text-align: center;
+      transition: all 0.2s ease;
+      background: var(--dark-700);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.dragover {
+      border-color: var(--teal);
+      background: rgba(0, 212, 170, 0.05);
+      box-shadow: 0 0 0 3px var(--teal-glow);
+    }
+
+    .drop-icon {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 10px;
+      background: var(--dark-600);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .drop-title {
+      font-family: var(--font-head);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--txt-dark);
+      margin-bottom: 4px;
+    }
+
+    .drop-sub {
+      font-size: 0.73rem;
+      color: var(--txt-muted);
+    }
+
+    #image-upload {
+      display: none;
+    }
+
+    /* ── Preview image ── */
+    #preview {
+      display: none;
+      margin-top: 16px;
+    }
+
+    .preview-wrap {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--dark-border);
+    }
+
+    #preview-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .preview-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(8, 13, 26, 0.8) 0%, transparent 50%);
+    }
+
+    /* ── Image Info Card ── */
+    #img-info {
+      display: none;
+      margin-top: 12px;
+      background: var(--dark-700);
+      border: 1px solid var(--dark-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      animation: slideDown 0.25s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .info-item {}
+
+    .info-lbl {
+      font-size: 0.67rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--txt-muted);
+      margin-bottom: 2px;
+    }
+
+    .info-val {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--teal);
+      font-weight: 500;
+    }
+
+    /* ── Buttons ── */
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .btn-primary {
+      flex: 1;
+      font-family: var(--font-head);
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--teal) 0%, #00AAFF 100%);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(0, 212, 170, 0.3);
+      letter-spacing: 0.01em;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(0, 212, 170, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-ghost {
+      font-family: var(--font-head);
+      font-size: 0.82rem;
+      font-weight: 500;
+      background: var(--dark-600);
+      color: var(--txt-muted);
+      border: 1px solid var(--dark-border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-ghost:hover {
+      background: var(--dark-500);
+      color: var(--txt-dark);
+    }
+
+    /* ═══════════════════════════════════════
+       SIDEBAR: PIPELINE LOG (dark terminal)
+    ═══════════════════════════════════════ */
+    .log-section {
+      margin-top: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .section-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--txt-muted);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--dark-border);
+    }
+
+    .log-terminal {
+      flex: 1;
+      background: var(--dark-900);
+      border: 1px solid var(--dark-border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      overflow-y: auto;
+      min-height: 180px;
+      max-height: 240px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+    }
+
+    .log-empty {
+      color: var(--txt-muted);
+      font-style: italic;
+      font-size: 0.73rem;
+    }
+
+    /* Each log line */
+    .log-entry {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      animation: logAppear 0.3s ease;
+    }
+
+    @keyframes logAppear {
+      from {
+        opacity: 0;
+        transform: translateX(-8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .log-step {
+      font-size: 0.65rem;
+      color: var(--txt-muted);
+      padding-top: 1px;
+      min-width: 18px;
+      text-align: right;
+    }
+
+    .log-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+
+    .log-dot.ok {
+      background: var(--teal);
+      box-shadow: 0 0 6px var(--teal);
+    }
+
+    .log-dot.warn {
+      background: var(--amber);
+    }
+
+    .log-dot.err {
+      background: var(--rose);
+    }
+
+    .log-dot.info {
+      background: var(--blue-acc);
+    }
+
+    .log-dot.spin {
+      background: transparent;
+      border: 1.5px solid var(--teal);
+      border-top-color: transparent;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .log-text {
+      color: #C8D8FF;
+      line-height: 1.5;
+    }
+
+    .log-text .hi {
+      color: var(--teal);
+    }
+
+    /* ── Model summary chips ── */
+    .model-chips {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 14px;
+    }
+
+    .model-chip {
+      background: var(--dark-700);
+      border: 1px solid var(--dark-border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: border-color 0.2s;
+    }
+
+    .model-chip.active {
+      border-color: var(--teal);
+    }
+
+    .chip-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--txt-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .chip-val {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--txt-dark);
+      font-weight: 500;
+    }
+
+    .chip-val.teal {
+      color: var(--teal);
+    }
+
+    /* ═══════════════════════════════════════
+       MAIN AREA: TOPBAR
+    ═══════════════════════════════════════ */
+    .topbar {
+      background: var(--dark-800);
+      border-bottom: 1px solid var(--dark-border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .topbar-title {
+      font-family: var(--font-head);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--txt-dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 0 8px var(--teal);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.4;
+      }
+    }
+
+    .topbar-meta {
+      font-size: 0.75rem;
+      color: var(--txt-muted);
+      display: flex;
+      gap: 16px;
+    }
+
+    .meta-pill {
+      background: var(--dark-700);
+      border: 1px solid var(--dark-border);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 0.7rem;
+      color: var(--txt-muted);
+    }
+
+    /* ═══════════════════════════════════════
+       MAIN AREA: CONTENT
+    ═══════════════════════════════════════ */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px;
+    }
+
+    /* ── Empty state ── */
+    #state-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      animation: fadeUp 0.5s ease;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .empty-art {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, var(--light-100), var(--light-200));
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .empty-title {
+      font-family: var(--font-head);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--txt-body);
+      margin-bottom: 8px;
+    }
+
+    .empty-sub {
+      font-size: 0.88rem;
+      color: var(--txt-sub);
+      max-width: 320px;
+      line-height: 1.6;
+    }
+
+    /* ── Loading state ── */
+    #state-loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .loader-ring {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      border: 3px solid var(--light-200);
+      border-top-color: var(--teal);
+      animation: spin 0.9s linear infinite;
+    }
+
+    .loader-text {
+      font-family: var(--font-head);
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--txt-sub);
+    }
+
+    /* ── Results ── */
+    #state-results {
+      display: none;
+      animation: fadeUp 0.4s ease;
+    }
+
+    /* ── Error ── */
+    #state-error {
+      display: none;
+      padding: 24px;
+      background: #FFF5F5;
+      border: 1px solid #FFCDD2;
+      border-left: 4px solid var(--rose);
+      border-radius: var(--radius);
+      animation: fadeUp 0.3s ease;
+    }
+
+    #state-error .err-title {
+      font-family: var(--font-head);
+      font-weight: 700;
+      color: #C62828;
+      font-size: 1rem;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #state-error .err-msg {
+      font-size: 0.85rem;
+      color: #B71C1C;
+    }
+
+    /* ── Not skin ── */
+    #state-notskin {
+      display: none;
+      padding: 24px;
+      background: #F0F8FF;
+      border: 1px solid #B3D9FF;
+      border-left: 4px solid var(--blue-acc);
+      border-radius: var(--radius);
+      animation: fadeUp 0.3s ease;
+    }
+
+    /* ═══════════════════════════════════════
+       RESULT CARDS
+    ═══════════════════════════════════════ */
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        flex-direction: column;
+        height: auto;
+        overflow-y: auto;
+      }
+
+      .sidebar {
+        width: 100%;
+        min-width: unset;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--dark-border);
+      }
+
+      .sidebar-inner {
+        height: auto;
+        padding: 20px 16px;
+      }
+
+      .main {
+        height: auto;
+        overflow: visible;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        padding: 12px 16px;
+      }
+
+      .topbar-meta {
+        display: none;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .result-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .pred-class {
+        font-size: 1.5rem;
+      }
+
+      #mobile-camera-area {
+        display: block !important;
+      }
+    }
+
+    .r-card {
+      background: var(--light-card);
+      border-radius: var(--radius);
+      border: 1px solid var(--light-200);
+      padding: 20px;
+      box-shadow: var(--shadow-card);
+      animation: cardIn 0.4s ease both;
+    }
+
+    @keyframes cardIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .r-card:nth-child(1) {
+      animation-delay: 0.05s;
+    }
+
+    .r-card:nth-child(2) {
+      animation-delay: 0.10s;
+    }
+
+    .r-card:nth-child(3) {
+      animation-delay: 0.15s;
+    }
+
+    .r-card:nth-child(4) {
+      animation-delay: 0.20s;
+    }
+
+    .r-card-full {
+      grid-column: 1 / -1;
+    }
+
+    .card-lbl {
+      font-size: 0.67rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-lbl .lbl-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    /* Prediction Hero Card */
+    .pred-hero {
+      background: linear-gradient(135deg, var(--dark-800) 0%, var(--dark-600) 100%);
+      border: 1px solid var(--dark-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pred-hero::before {
+      content: '';
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 160px;
+      height: 160px;
+      background: radial-gradient(circle, var(--teal-glow), transparent 70%);
+      pointer-events: none;
+    }
+
+    .pred-lbl {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--teal);
+      margin-bottom: 8px;
+    }
+
+    .pred-class {
+      font-family: var(--font-head);
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1.1;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+
+    .conf-bar-wrap {
+      margin-top: 14px;
+    }
+
+    .conf-bar-lbl {
+      font-size: 0.72rem;
+      color: var(--txt-muted);
+      margin-bottom: 5px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .conf-bar-bg {
+      height: 5px;
+      background: var(--dark-500);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .conf-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--teal), #00AAFF);
+      border-radius: 99px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 0%;
+    }
+
+    /* Info rows */
+    .info-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 14px;
+    }
+
+    .info-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .i-lbl {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--txt-sub);
+    }
+
+    .i-val {
+      font-size: 0.85rem;
+      color: var(--txt-body);
+      line-height: 1.5;
+    }
+
+    /* Badge pills */
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .pill-teal {
+      background: rgba(0, 212, 170, 0.12);
+      color: #00A882;
+      border: 1px solid rgba(0, 212, 170, 0.25);
+    }
+
+    .pill-amber {
+      background: rgba(255, 181, 71, 0.12);
+      color: #B07700;
+      border: 1px solid rgba(255, 181, 71, 0.25);
+    }
+
+    .pill-rose {
+      background: rgba(255, 91, 121, 0.12);
+      color: #C0002E;
+      border: 1px solid rgba(255, 91, 121, 0.25);
+    }
+
+    .pill-blue {
+      background: rgba(78, 159, 255, 0.12);
+      color: #1A5FAA;
+      border: 1px solid rgba(78, 159, 255, 0.25);
+    }
+
+    .pill-gray {
+      background: var(--light-100);
+      color: var(--txt-sub);
+      border: 1px solid var(--light-300);
+    }
+
+    /* Severity meter */
+    .severity-dots {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .sev-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--light-300);
+    }
+
+    .sev-dot.on-low {
+      background: var(--teal);
+    }
+
+    .sev-dot.on-med {
+      background: var(--amber);
+    }
+
+    .sev-dot.on-high {
+      background: var(--rose);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ═══════════════════════════
+       SIDEBAR (dark — 40%)
+  ════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-inner dark-scroll">
+
+      <!-- Brand -->
+      <div class="brand">
+        <div class="brand-icon">🔬</div>
+        <div>
+          <div class="brand-name">DermaAI</div>
+          <div class="brand-tag">v2.0 · EfficientNetV2-M</div>
+        </div>
+      </div>
+
+      <!-- Upload -->
+      <div class="section-label">Image Input</div>
+
+      <!-- Mobile Camera (Visible only on mobile) -->
+      <div id="mobile-camera-area" style="display: none; margin-bottom: 16px;">
+        <button type="button" class="btn-primary" onclick="document.getElementById('image-upload-camera').click()" style="background: var(--dark-600); width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid var(--dark-border); padding: 16px; border-radius: var(--radius); color: #fff; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+          <span style="font-size: 1.2rem;">📸</span> Take a Photo
+        </button>
+        <input id="image-upload-camera" type="file" accept="image/*" capture="environment" style="display: none;" />
+      </div>
+
+      <label class="upload-label" id="dropzone">
+        <div class="drop-zone" id="drop-area">
+          <div class="drop-icon">📁</div>
+          <div class="drop-title">Drop image or click to browse</div>
+          <div class="drop-sub">Camera · Gallery · JPG/PNG · max 16MB</div>
+        </div>
+      </label>
+      <input id="image-upload" type="file" accept="image/*" style="display: none;" />
+
+      <!-- Preview -->
+      <div id="preview">
+        <div class="preview-wrap">
+          <img id="preview-img" src="#" alt="preview" />
+          <div class="preview-overlay"></div>
+        </div>
+
+        <!-- Image Info -->
+        <div id="img-info">
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-lbl">File Name</div>
+              <div class="info-val" id="ii-name">—</div>
+            </div>
+            <div class="info-item">
+              <div class="info-lbl">File Size</div>
+              <div class="info-val" id="ii-size">—</div>
+            </div>
+            <div class="info-item">
+              <div class="info-lbl">Dimensions</div>
+              <div class="info-val" id="ii-dims">—</div>
+            </div>
+            <div class="info-item">
+              <div class="info-lbl">Format</div>
+              <div class="info-val" id="ii-fmt">—</div>
+            </div>
+            <div class="info-item">
+              <div class="info-lbl">Colour Mode</div>
+              <div class="info-val" id="ii-mode">RGB</div>
+            </div>
+            <div class="info-item">
+              <div class="info-lbl">Last Modified</div>
+              <div class="info-val" id="ii-mod">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="btn-row">
+          <button class="btn-primary" id="analyze-btn">⚡ Analyze</button>
+          <button class="btn-ghost" id="change-btn">↩ Change</button>
+        </div>
+      </div>
+
+      <!-- Pipeline Log -->
+      <div class="log-section">
+        <div class="section-label" style="margin-top:20px;">Pipeline Log</div>
+        <div class="log-terminal dark-scroll" id="log-terminal">
+          <div class="log-empty">Awaiting image…</div>
+        </div>
+
+        <!-- Model chips -->
+        <div class="section-label" style="margin-top:16px;">Model Output</div>
+        <div class="model-chips">
+          <div class="model-chip" id="chip-binary">
+            <span class="chip-label">Binary Model</span>
+            <span class="chip-val" id="chip-binary-val">—</span>
+          </div>
+          <div class="model-chip" id="chip-stage2">
+            <span class="chip-label">7-Class Model</span>
+            <span class="chip-val" id="chip-stage2-val">—</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /sidebar-inner -->
+  </aside>
+
+  <!-- ═══════════════════════════
+       MAIN PANEL (light — 60%)
+  ════════════════════════════ -->
+  <div class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-title">
+        <div class="status-dot"></div>
+        Diagnostic Results
+      </div>
+      <div class="topbar-meta">
+        <span class="meta-pill">EfficientNetV2-M</span>
+        <span class="meta-pill">SQLite Cache</span>
+        <span class="meta-pill" id="timing-pill">—</span>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- Empty -->
+      <div id="state-empty">
+        <div class="empty-art">🩺</div>
+        <div class="empty-title">No Image Analyzed</div>
+        <div class="empty-sub">Upload a skin image on the left panel and click Analyze to run the full detection
+          pipeline.</div>
+      </div>
+
+      <!-- Loading -->
+      <div id="state-loading">
+        <div class="loader-ring"></div>
+        <div class="loader-text" id="loading-label">Running pipeline…</div>
+      </div>
+
+      <!-- Error -->
+      <div id="state-error">
+        <div class="err-title">⚠ Pipeline Error</div>
+        <div class="err-msg" id="err-msg-text">—</div>
+      </div>
+
+      <!-- Not Skin -->
+      <div id="state-notskin">
+        <div class="card-lbl" style="color:#1A5FAA; font-size:0.8rem; margin-bottom:8px;">🔵 Not a Skin Image</div>
+        <div style="font-size:0.9rem; color:#1A4F8A;" id="notskin-txt">—</div>
+      </div>
+
+      <!-- Results -->
+      <div id="state-results">
+
+        <!-- Hero prediction + Action row -->
+        <div class="result-grid">
+
+          <!-- Prediction hero -->
+          <div class="pred-hero">
+            <div class="pred-lbl">Predicted Condition</div>
+            <div class="pred-class" id="r-class">—</div>
+
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+              <span class="badge-pill pill-teal" id="r-severity-badge">Severity —</span>
+              <span class="badge-pill pill-blue" id="r-contagious-badge">Contagious —</span>
+            </div>
+
+            <div class="conf-bar-wrap">
+              <div class="conf-bar-lbl">
+                <span>Confidence</span>
+                <span id="r-conf-pct">0%</span>
+              </div>
+              <div class="conf-bar-bg">
+                <div class="conf-bar-fill" id="r-conf-bar"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recommended Action -->
+          <div class="r-card">
+            <div class="card-lbl">
+              <span class="lbl-dot" style="background:var(--teal)"></span>
+              <span style="color:var(--teal)">Recommended Action</span>
+            </div>
+            <div class="i-val" id="r-action">—</div>
+          </div>
+
+        </div>
+
+        <!-- Description + Symptoms row -->
+        <div class="result-grid">
+
+          <div class="r-card">
+            <div class="card-lbl">
+              <span class="lbl-dot" style="background:var(--blue-acc)"></span>
+              <span style="color:var(--blue-acc)">Disease Overview</span>
+            </div>
+            <div class="i-val" id="r-desc">—</div>
+          </div>
+
+          <div class="r-card">
+            <div class="card-lbl">
+              <span class="lbl-dot" style="background:var(--amber)"></span>
+              <span style="color:#B07700">Common Symptoms</span>
+            </div>
+            <div class="i-val" id="r-symptoms">—</div>
+          </div>
+
+        </div>
+
+        <!-- Details row -->
+        <div class="result-grid">
+
+          <div class="r-card">
+            <div class="card-lbl">
+              <span class="lbl-dot" style="background:var(--txt-sub)"></span>
+              <span style="color:var(--txt-sub)">Related Conditions</span>
+            </div>
+            <div class="i-val" id="r-related">—</div>
+          </div>
+
+          <div class="r-card">
+            <div class="card-lbl">
+              <span class="lbl-dot" style="background:var(--rose)"></span>
+              <span style="color:#C0002E">Image Indicators</span>
+            </div>
+            <div class="i-val" id="r-indicators">—</div>
+          </div>
+
+        </div>
+
+      </div><!-- /state-results -->
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+  <script>
+    /* ═══════════════════════════════════════════════
+       DOM REFS
+    ═══════════════════════════════════════════════ */
+    const input = document.getElementById('image-upload');
+    const inputCamera = document.getElementById('image-upload-camera');
+    const dropZone = document.getElementById('dropzone');
+    const dropArea = document.getElementById('drop-area');
+    const previewWrap = document.getElementById('preview');
+    const previewImg = document.getElementById('preview-img');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const changeBtn = document.getElementById('change-btn');
+    const imgInfo = document.getElementById('img-info');
+
+    // Image info fields
+    const iiName = document.getElementById('ii-name');
+    const iiSize = document.getElementById('ii-size');
+    const iiDims = document.getElementById('ii-dims');
+    const iiFmt = document.getElementById('ii-fmt');
+    const iiMod = document.getElementById('ii-mod');
+
+    // Log
+    const logTerminal = document.getElementById('log-terminal');
+    const chipBinary = document.getElementById('chip-binary');
+    const chipStage2 = document.getElementById('chip-stage2');
+    const chipBinaryVal = document.getElementById('chip-binary-val');
+    const chipStage2Val = document.getElementById('chip-stage2-val');
+
+    // States
+    const stateEmpty = document.getElementById('state-empty');
+    const stateLoading = document.getElementById('state-loading');
+    const stateError = document.getElementById('state-error');
+    const stateNotskin = document.getElementById('state-notskin');
+    const stateResults = document.getElementById('state-results');
+    const loadingLabel = document.getElementById('loading-label');
+    const timingPill = document.getElementById('timing-pill');
+
+    // Result fields
+    const rClass = document.getElementById('r-class');
+    const rConf = document.getElementById('r-conf-pct');
+    const rConfBar = document.getElementById('r-conf-bar');
+    const rAction = document.getElementById('r-action');
+    const rDesc = document.getElementById('r-desc');
+    const rSymptoms = document.getElementById('r-symptoms');
+    const rRelated = document.getElementById('r-related');
+    const rIndicators = document.getElementById('r-indicators');
+    const rSevBadge = document.getElementById('r-severity-badge');
+    const rContBadge = document.getElementById('r-contagious-badge');
+
+    /* ═══════════════════════════════════════════════
+       STATE
+    ═══════════════════════════════════════════════ */
+    let currentFile = null;
+    let analyzing = false;
+    let tStart = 0;
+
+    /* ═══════════════════════════════════════════════
+       HELPERS
+    ═══════════════════════════════════════════════ */
+    function fmtBytes(b) {
+      if (b < 1024) return b + ' B';
+      if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+      return (b / 1048576).toFixed(2) + ' MB';
+    }
+
+    function fmtDate(d) {
+      const dt = new Date(d);
+      return dt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function showState(name) {
+      stateEmpty.style.display = 'none';
+      stateLoading.style.display = 'none';
+      stateError.style.display = 'none';
+      stateNotskin.style.display = 'none';
+      stateResults.style.display = 'none';
+
+      if (name === 'empty') { stateEmpty.style.display = 'flex'; }
+      if (name === 'loading') { stateLoading.style.display = 'flex'; }
+      if (name === 'error') { stateError.style.display = 'block'; }
+      if (name === 'notskin') { stateNotskin.style.display = 'block'; }
+      if (name === 'results') { stateResults.style.display = 'block'; }
+    }
+
+    /* ── Log entries ── */
+    let logStep = 0;
+
+    function clearLog() {
+      logTerminal.innerHTML = '';
+      logStep = 0;
+      chipBinaryVal.textContent = '—';
+      chipStage2Val.textContent = '—';
+      chipBinary.classList.remove('active');
+      chipStage2.classList.remove('active');
+    }
+
+    function addLog(msg, type = 'ok', delay = 0) {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          logStep++;
+          const entry = document.createElement('div');
+          entry.className = 'log-entry';
+
+          const dot = document.createElement('div');
+          dot.className = `log-dot ${type}`;
+
+          const step = document.createElement('div');
+          step.className = 'log-step';
+          step.textContent = logStep;
+
+          const text = document.createElement('div');
+          text.className = 'log-text';
+          text.innerHTML = msg;
+
+          entry.appendChild(dot);
+          entry.appendChild(step);
+          entry.appendChild(text);
+          logTerminal.appendChild(entry);
+          logTerminal.scrollTop = logTerminal.scrollHeight;
+          resolve();
+        }, delay);
+      });
+    }
+
+    /* Animate logs from pipeline array with staggered timing */
+    async function animatePipelineLogs(pipeline) {
+      for (let i = 0; i < pipeline.length; i++) {
+        const msg = pipeline[i];
+        let type = 'ok';
+        if (/fail|invalid|blurry|error/i.test(msg)) type = 'err';
+        else if (/running|loading/i.test(msg)) type = 'info';
+        else if (/warn/i.test(msg)) type = 'warn';
+
+        const highlighted = msg.replace(/([\d.]+%?)/g, '<span class="hi">$1</span>');
+        await addLog(highlighted, type, i * 80);
+      }
+    }
+
+    /* Severity → dot count */
+    function severityDots(level) {
+      const s = (level || '').toLowerCase();
+      if (s.includes('high') || s.includes('severe')) return 4;
+      if (s.includes('mod')) return 3;
+      if (s.includes('low') || s.includes('mild')) return 2;
+      return 1;
+    }
+
+    function severityClass(level, n) {
+      const s = (level || '').toLowerCase();
+      if (n <= severityDots(level)) {
+        if (s.includes('high') || s.includes('severe')) return 'on-high';
+        if (s.includes('mod')) return 'on-med';
+        return 'on-low';
+      }
+      return '';
+    }
+
+    /* ═══════════════════════════════════════════════
+       FILE SELECT / DROP
+    ═══════════════════════════════════════════════ */
+    dropZone.addEventListener('click', () => input.click());
+
+    ['dragover', 'dragenter'].forEach(ev =>
+      dropArea.addEventListener(ev, e => { e.preventDefault(); dropArea.classList.add('dragover'); })
+    );
+    ['dragleave', 'dragend', 'drop'].forEach(ev =>
+      dropArea.addEventListener(ev, e => { e.preventDefault(); dropArea.classList.remove('dragover'); })
+    );
+    dropArea.addEventListener('drop', e => {
+      const file = e.dataTransfer.files[0];
+      if (file) loadFile(file);
+    });
+
+    input.addEventListener('change', () => {
+      if (input.files[0]) loadFile(input.files[0], true);
+    });
+
+    if (inputCamera) {
+      inputCamera.addEventListener('change', () => {
+        if (inputCamera.files[0]) loadFile(inputCamera.files[0], true);
+      });
+    }
+
+    function loadFile(file, autoAnalyze = false) {
+      currentFile = file;
+      const reader = new FileReader();
+      reader.onload = e => {
+        previewImg.src = e.target.result;
+        previewWrap.style.display = 'block';
+        imgInfo.style.display = 'block';
+
+        // Fill info fields immediately
+        iiName.textContent = file.name.length > 18 ? file.name.slice(0, 16) + '…' : file.name;
+        iiSize.textContent = fmtBytes(file.size);
+        iiFmt.textContent = (file.type || '').replace('image/', '').toUpperCase() || '—';
+        iiMod.textContent = fmtDate(file.lastModified);
+
+        // Dimensions from Image object
+        const img = new Image();
+        img.onload = () => {
+          iiDims.textContent = `${img.naturalWidth} × ${img.naturalHeight}`;
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      showState('empty');
+      clearLog();
+      addLog('Image loaded — ready to analyze', 'ok');
+      
+      if (autoAnalyze) {
+        setTimeout(() => analyzeBtn.click(), 500);
+      }
+    }
+
+    changeBtn.addEventListener('click', () => {
+      input.value = '';
+      currentFile = null;
+      previewWrap.style.display = 'none';
+      imgInfo.style.display = 'none';
+      clearLog();
+      logTerminal.innerHTML = '<div class="log-empty">Awaiting image…</div>';
+      showState('empty');
+      timingPill.textContent = '—';
+    });
+
+    /* ═══════════════════════════════════════════════
+       ANALYZE
+    ═══════════════════════════════════════════════ */
+    analyzeBtn.addEventListener('click', async () => {
+      if (!currentFile) { alert('Please upload an image first.'); return; }
+      if (analyzing) return;
+      analyzing = true;
+      analyzeBtn.disabled = true;
+
+      tStart = performance.now();
+      clearLog();
+      showState('loading');
+
+      const loadingMessages = [
+        'Validating image…',
+        'Running binary model…',
+        'Running Stage-2 classifier…',
+        'Fetching disease data…',
+      ];
+      let lIdx = 0;
+      loadingLabel.textContent = loadingMessages[0];
+      const lInterval = setInterval(() => {
+        lIdx = (lIdx + 1) % loadingMessages.length;
+        loadingLabel.textContent = loadingMessages[lIdx];
+      }, 1800);
+
+      try {
+        const fd = new FormData();
+        fd.append('image', currentFile);
+
+        const res = await fetch('/api/analyze', { method: 'POST', body: fd });
+        const j = await res.json();
+
+        clearInterval(lInterval);
+
+        const elapsed = ((performance.now() - tStart) / 1000).toFixed(2);
+        timingPill.textContent = `${elapsed}s`;
+
+        /* ── Animate logs first ── */
+        if (j.pipeline && j.pipeline.length) {
+          await animatePipelineLogs(j.pipeline);
+        }
+
+        /* ── Route by stage ── */
+
+        if (j.status === 'error') {
+          addLog('⚠ Server error: ' + j.message, 'err');
+          document.getElementById('err-msg-text').textContent = j.message || 'Unknown error.';
+          showState('error');
+
+        } else if (j.stage === 'invalid') {
+          addLog('✖ Image rejected by pipeline', 'err');
+          document.getElementById('err-msg-text').textContent =
+            (j.pipeline || []).slice(-1)[0] || 'Image failed validation.';
+          showState('error');
+
+        } else if (j.stage === 'not_skin') {
+          const p = j.binary_prediction?.probability ?? 0;
+          chipBinaryVal.textContent = `not_skin · ${(p * 100).toFixed(1)}%`;
+          chipBinary.classList.add('active');
+          addLog(`Binary: <span class="hi">not_skin</span> (${(p * 100).toFixed(1)}%)`, 'warn');
+          document.getElementById('notskin-txt').textContent =
+            `The binary model classified this image as non-skin with ${(p * 100).toFixed(2)}% confidence. Please upload a clear skin image.`;
+          showState('notskin');
+
+        } else if (j.stage === 'disease_found') {
+          const bp = j.binary_prediction?.probability ?? 0;
+          const sp = j.model_prediction?.probability ?? 0;
+          const cls = j.final_class || '—';
+          const info = j.disease_info || {};
+
+          // Chips
+          chipBinaryVal.textContent = `skin · ${(bp * 100).toFixed(1)}%`;
+          chipStage2Val.textContent = `${cls} · ${(sp * 100).toFixed(1)}%`;
+          chipBinary.classList.add('active');
+          chipStage2.classList.add('active');
+
+          addLog(`Final: <span class="hi">${cls}</span> · ${(sp * 100).toFixed(1)}% confidence`, 'ok');
+
+          // Fill result cards
+          rClass.textContent = cls;
+          rAction.textContent = info.recommended_action || '—';
+          rDesc.textContent = info.description || '—';
+          rSymptoms.textContent = info.common_symptoms || '—';
+          rRelated.textContent = info.related_conditions || '—';
+          rIndicators.textContent = info.image_indicators || '—';
+
+          // Severity badge
+          const sev = info.severity_level || '';
+          rSevBadge.textContent = `Severity: ${sev || '—'}`;
+          if (/high|severe/i.test(sev)) rSevBadge.className = 'badge-pill pill-rose';
+          else if (/mod/i.test(sev)) rSevBadge.className = 'badge-pill pill-amber';
+          else rSevBadge.className = 'badge-pill pill-teal';
+
+          // Contagious
+          const cont = Number(info.is_contagious) === 1;
+          rContBadge.textContent = `Contagious: ${cont ? 'Yes' : 'No'}`;
+          rContBadge.className = cont ? 'badge-pill pill-rose' : 'badge-pill pill-teal';
+
+          // Confidence bar (animate after short delay)
+          setTimeout(() => {
+            rConf.textContent = `${(sp * 100).toFixed(1)}%`;
+            rConfBar.style.width = `${(sp * 100).toFixed(1)}%`;
+          }, 100);
+
+          showState('results');
+        }
+
+      } catch (err) {
+        clearInterval(lInterval);
+        addLog('Network error: ' + err.message, 'err');
+        document.getElementById('err-msg-text').textContent = err.message;
+        showState('error');
+      } finally {
+        analyzing = false;
+        analyzeBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+
+</html>

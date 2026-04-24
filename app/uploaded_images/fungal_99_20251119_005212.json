@@ -1,0 +1,25 @@
+{
+    "timestamp": "20251119_005212",
+    "predicted_class": "fungal",
+    "model_confidence": 0.9972330927848816,
+    "binary_confidence": 0.9973273277282715,
+    "pipeline": [
+        "Image uploaded",
+        "Corruption check passed",
+        "Image quality passed (lap=477.535116121445)",
+        "Binary model: skin (0.997)",
+        "Running Stage-2 EfficientNetV2-M",
+        "Final class: fungal (0.997)",
+        "Disease information loaded"
+    ],
+    "disease_info": {
+        "class_name": "fungal",
+        "description": "Fungal infections are caused by dermatophytes, yeasts, or molds that infect the outer skin layers. They commonly appear as ring-shaped, scaly, itchy patches and thrive in warm, moist environments.",
+        "common_symptoms": "Itching, ring-shaped rash, redness, scaling, cracking skin",
+        "severity_level": "Mild to Moderate",
+        "recommended_action": "Keep the area clean and dry, use antifungal creams or powders, consult a dermatologist if symptoms worsen.",
+        "is_contagious": 1,
+        "related_conditions": "Eczema, bacterial infection, dermatitis",
+        "image_indicators": "Circular scaly edges, central clearing, reddish borders, flaky patches"
+    }
+}

@@ -1,0 +1,26 @@
+{
+  "timestamp": "20260423_114750",
+  "predicted_class": "viral",
+  "model_confidence": 0.5855075716972351,
+  "binary_confidence": 0.9692878127098083,
+  "pipeline": [
+    "Image uploaded",
+    "Validating image (parallel)",
+    "Quality checks passed (var=211.3)",
+    "Binary model: running",
+    "Binary model → skin (0.969)",
+    "Stage-2 EfficientNetV2-M: running",
+    "Final → viral (0.586)",
+    "Disease info loaded from cache"
+  ],
+  "disease_info": {
+    "class_name": "viral",
+    "description": "Viral skin infections are caused by viruses such as herpes simplex, varicella-zoster, or molluscum contagiosum. They produce vesicles, blisters, grouped sores, or dome-shaped lesions.",
+    "common_symptoms": "Fluid-filled blisters, grouped vesicles, burning sensation, fever (sometimes)",
+    "severity_level": "Mild to Moderate",
+    "recommended_action": "Maintain hygiene, avoid touching lesions, antiviral therapy may be required for herpes or shingles.",
+    "is_contagious": 1,
+    "related_conditions": "Bacterial superinfection, dermatitis, fungal infection",
+    "image_indicators": "Clustered vesicles, blisters, red base, central depression"
+  }
+}

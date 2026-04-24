@@ -1,0 +1,26 @@
+.
+├── app.py
+├── config.py
+├── data
+│   └── disease_info.db
+├── logs
+├── models
+│   ├── efficientnetv2m_finetuned.keras
+│   └── mobilenetv3_fine_tune_binary.keras
+├── __pycache__
+│   └── config.cpython-312.pyc
+├── requirements.txt
+├── templates
+│   └── index.html
+├── uploaded_images/
+├── uploads/
+├── utils
+│   ├── model_loader.py
+│   └── __pycache__
+│       └── model_loader.cpython-312.pyc
+└── validators
+    ├── image_corrupt.py
+    ├── image_quality.py
+    └── __pycache__
+        ├── image_corrupt.cpython-312.pyc
+        └── image_quality.cpython-312.pyc

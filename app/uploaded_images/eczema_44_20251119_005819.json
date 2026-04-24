@@ -1,0 +1,26 @@
+{
+  "timestamp": "20251119_005819",
+  "predicted_class": "eczema",
+  "model_confidence": 0.4498153328895569,
+  "binary_confidence": 0.9715690016746521,
+  "pipeline": [
+    "Image uploaded",
+    "Corruption check passed",
+    "Image quality passed (var=366.6107037153804)",
+    "Running binary model",
+    "Binary model: skin (0.972)",
+    "Running Stage-2 EfficientNetV2-M",
+    "Final class: eczema (0.450)",
+    "Disease information loaded"
+  ],
+  "disease_info": {
+    "class_name": "eczema",
+    "description": "Eczema (dermatitis) is a chronic inflammatory skin condition characterized by itching, dryness, redness, and episodic flare-ups caused by immune hypersensitivity or irritants.",
+    "common_symptoms": "Dryness, itching, redness, skin cracking, rough patches",
+    "severity_level": "Mild to Moderate",
+    "recommended_action": "Moisturize regularly, avoid triggers, use topical corticosteroids if prescribed.",
+    "is_contagious": 0,
+    "related_conditions": "Psoriasis, contact dermatitis, fungal infection",
+    "image_indicators": "Dry patches, redness, lichenified skin, scratch marks"
+  }
+}

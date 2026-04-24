@@ -1,0 +1,26 @@
+{
+  "timestamp": "20260423_111831",
+  "predicted_class": "parasitic infection",
+  "model_confidence": 0.9992571473121643,
+  "binary_confidence": 0.9983238577842712,
+  "pipeline": [
+    "Image uploaded",
+    "Corruption check passed",
+    "Quality passed (var=516.4)",
+    "Binary model: running",
+    "Binary model → skin (0.998)",
+    "Stage-2 EfficientNetV2-M: running",
+    "Final → parasitic infection (0.999)",
+    "Disease info loaded from cache"
+  ],
+  "disease_info": {
+    "class_name": "parasitic infection",
+    "description": "Parasitic skin infections involve organisms such as mites, lice, or larvae invading or residing on the skin. They typically cause intense itching, burrows, tracks, or visible movement.",
+    "common_symptoms": "Intense itching, burrows, red bumps, rashes, visible tracks",
+    "severity_level": "Moderate",
+    "recommended_action": "Use antiparasitic medication, wash bedding/clothes, treat close contacts if required.",
+    "is_contagious": 1,
+    "related_conditions": "Allergic dermatitis, bacterial infection from scratching",
+    "image_indicators": "Burrow lines, papules, clusters, serpiginous tracks"
+  }
+}

@@ -1,0 +1,25 @@
+{
+    "timestamp": "20251119_005038",
+    "predicted_class": "Psoriasis",
+    "model_confidence": 0.6972702741622925,
+    "binary_confidence": 0.9997562766075134,
+    "pipeline": [
+        "Image uploaded",
+        "Corruption check passed",
+        "Image quality passed (lap=383.7359704597855)",
+        "Binary model: skin (1.000)",
+        "Running Stage-2 EfficientNetV2-M",
+        "Final class: Psoriasis (0.697)",
+        "Disease information loaded"
+    ],
+    "disease_info": {
+        "class_name": "Psoriasis",
+        "description": "Psoriasis is a chronic autoimmune skin disorder where rapid skin cell turnover leads to thick, red plaques covered with silvery scales. Commonly affects elbows, knees, scalp, and lower back.",
+        "common_symptoms": "Silvery scales, thick plaques, redness, itching, dry cracked skin",
+        "severity_level": "Moderate to Severe",
+        "recommended_action": "Use topical steroids, moisturizers, phototherapy, or systemic medications under dermatological supervision.",
+        "is_contagious": 0,
+        "related_conditions": "Eczema, seborrheic dermatitis, lichen planus",
+        "image_indicators": "Thick raised plaques, silver scales, sharply defined red borders"
+    }
+}

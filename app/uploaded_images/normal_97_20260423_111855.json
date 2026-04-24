@@ -1,0 +1,26 @@
+{
+  "timestamp": "20260423_111855",
+  "predicted_class": "normal",
+  "model_confidence": 0.9741829037666321,
+  "binary_confidence": 0.991012692451477,
+  "pipeline": [
+    "Image uploaded",
+    "Corruption check passed",
+    "Quality passed (var=112.0)",
+    "Binary model: running",
+    "Binary model → skin (0.991)",
+    "Stage-2 EfficientNetV2-M: running",
+    "Final → normal (0.974)",
+    "Disease info loaded from cache"
+  ],
+  "disease_info": {
+    "class_name": "normal",
+    "description": "Healthy skin shows no signs of infection, inflammation, or abnormal growth. Minor variations such as moles, freckles, and healed scars may appear but remain benign.",
+    "common_symptoms": "No significant symptoms, even texture, normal skin tone",
+    "severity_level": "None",
+    "recommended_action": "No action needed; maintain skincare routine.",
+    "is_contagious": 0,
+    "related_conditions": "Benign moles, scars, freckles",
+    "image_indicators": "Smooth texture, uniform color, normal pores, absence of lesions"
+  }
+}

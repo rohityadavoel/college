@@ -1,0 +1,7 @@
+flask
+werkzeug
+pillow
+opencv-python-headless
+numpy
+tensorflow
+gunicorn   # optional, for production
